@@ -3,6 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Interactive flowchart and mind map for the Deli e-commerce panel update: D2C checkout, B2B approval, RFQ and offer price, inventory and price upload.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Deli E-commerce panel – flow">
+<meta property="og:title" content="Deli E-commerce panel: D2C + B2B flow">
+<meta property="og:description" content="Interactive flowchart and mind map: D2C checkout, B2B approval to RFQ to offer price, inventory and price upload.">
+<meta property="og:url" content="https://aci-edulink.github.io/e-com-panel-flow/">
+<meta property="og:image" content="https://aci-edulink.github.io/e-com-panel-flow/preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Deli E-commerce panel D2C and B2B flowchart preview">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Deli E-commerce panel: D2C + B2B flow">
+<meta name="twitter:image" content="https://aci-edulink.github.io/e-com-panel-flow/preview.png">
 <title>Deli E-commerce – D2C & B2B Flow (draft for MIS team)</title>
 <style>
 :root{
@@ -148,7 +162,7 @@ overview:{
   N("o4","proc",780,280,260,70,"B2B – corporate / edu buyer","Approval → account price → RFQ","note",{p:"p.2–3",go:"b2b",d:"Controlled path: registration form, approval by Account Manager, customer-wise catalog/prices, Add to RFQ, Submit RFQ, offer price."}),
   N("o5","sys",220,400,260,70,"Order + 3PL / Steadfast","Pay, ship, track","note",{p:"p.1",d:"Order goes straight to fulfilment via 3PL / Steadfast API."}),
   N("o6","proc",780,400,260,70,"RFQ → offer price → order","Negotiated, account-specific","note",{p:"p.2–3",d:"B2B never checks out directly: it submits an RFQ; Account Manager returns an offer price; the accepted offer becomes an order."}),
-  N("o7","adm",500,520,320,70,"Existing Admin panel","Order Mgmt · Inventory (separate e-com stock) · Customers","note",{p:"p.3 + screenshot",go:"admin",d:"Both journeys land in the same admin panel. Notes add a separate e-com stock bucket, account-wise prices and form email-config."})
+  N("o7","adm",500,520,320,70,"Existing Admin panel","Inventory upload · D2C + B2B prices · Orders · Customers","note",{p:"p.3 + screenshot",go:"admin",d:"Both journeys run on the same admin panel: inventory is updated by catalogue upload (qty, price), D2C and B2B prices are managed here, plus a separate e-com stock bucket, account-wise prices and form email-config."})
  ],
  edges:[E("o1","o2","b","t",""),E("o2","o3","l","t","Individual"),E("o2","o4","r","t","Corporate / RFQ"),E("o2","o9","b","t","Logged-in B2B"),E("o9","o4","r","l",""),E("o3","o5","b","t",""),E("o4","o6","b","t",""),E("o5","o7","b","l",""),E("o6","o7","b","r","")]
 },
@@ -172,10 +186,11 @@ d2c:{
   N("d10","sys",450,882,240,64,"Fulfilment: 3PL / Steadfast API","Parcel booking + tracking ID","note",{p:"p.1",d:"Fulfilment → 3PL / Steadfast API. Order data pushed via API; tracking ID stored on the order.",dev:["Send order to Steadfast API on confirmation; store consignment ID + tracking link.","Webhook/poll for status updates → order status.","Idempotency key so a retry never creates a duplicate parcel."]}),
   N("d11","dec",450,982,240,96,"Booking OK?","","sug",{d:"API can fail (timeout, invalid address, credit). Needs an explicit failure path.",loop:true}),
   N("d12","proc",860,998,200,64,"Auto-retry ×3 → manual queue","'Booking failed' list in admin","sug",{loop:true,d:"Retry with back-off, then surface in an admin exception queue so an operator can fix address and re-send or dispatch manually.",dev:["Order status 'Booking failed' + alert email to ops."]}),
+  N("dA","adm",140,20,200,52,"Admin: D2C price + qty","from catalogue upload","note",{p:"23-Nov update",go:"admin",d:"Price and availability shown on the D2C storefront come from the Admin catalogue upload (D2C price, e-com stock qty)."}),
   N("d13","end",450,1120,240,52,"Delivered · status to customer","SMS / email updates","note",{p:"p.1",d:"Tracking status flows back to the customer. Suggest: order confirmation + shipped + delivered messages."})
  ],
  edges:[
-  E("d1","d2","b","t",""),E("d2","d3","b","t",""),E("d3","d4","b","t",""),
+  E("dA","d1","r","l","feeds"),E("d1","d2","b","t",""),E("d2","d3","b","t",""),E("d3","d4","b","t",""),
   E("d4","d6","l","l","Already signed in",{via:[{x:140,y:360},{x:140,y:478}]}),
   E("d4","d5","r","l","Wants an account"),
   E("d4","d6","b","t","Guest · direct checkout ✓"),
@@ -217,10 +232,12 @@ b2b:{
   N("b12l","end",140,1194,200,56,"RFQ closed","declined / offer expired","sug",{d:"Close the RFQ, release any reserved stock, notify both sides."}),
   N("b13","proc",450,1312,240,64,"Offer accepted → Order","Stock reserved from e-com inventory","sug",{d:"Accepted offer is converted to an order with the locked offer price. Stock moves from available to reserved in the separate e-commerce stock.",q:"Payment terms for B2B: advance, credit, or PO/invoice?"}),
   N("b14","sys",450,1416,240,64,"Fulfilment","3PL / courier or own delivery?","sug",{d:"Steadfast/3PL fits parcels. Bulk corporate orders may need pallet/own-van delivery.",q:"Is Steadfast OK for bulk B2B orders, or do we use another carrier?"}),
+  N("bA","adm",140,564,200,64,"Admin: B2B price list","account price from Admin","note",{p:"23-Nov update",go:"admin",d:"B2B base price and account-wise prices are maintained in the Admin portal (upload or edit)."}),
+  N("bB","adm",140,1068,200,64,"Admin: e-com stock qty","from catalogue upload","note",{p:"23-Nov update",go:"admin",d:"Account Manager checks requested quantity against the e-commerce stock maintained by catalogue upload."}),
   N("b15","end",450,1520,260,52,"Delivered · invoice · repeat RFQ","","sug",{d:"Close with tax invoice (VAT/challan) and offer 'reorder from this RFQ'."})
  ],
  edges:[
-  E("b1","b2","b","t",""),E("b2","b3","b","t",""),E("b3","b4","b","t",""),
+  E("bA","b6","r","l","price"),E("bB","b11","r","l","check stock"),E("b1","b2","b","t",""),E("b2","b3","b","t",""),E("b3","b4","b","t",""),
   E("b4","b4r","r","l","Reject"),
   E("b4r","b2","t","r","re-apply",{k:"loop"}),
   E("b4","b4l","l","r","No action"),
@@ -238,31 +255,44 @@ b2b:{
 },
 
 admin:{
- title:"Admin set-up – what must exist behind the storefront",
- desc:"Notes page 3: separate stock for e-comm (Inventory), separate price per account (catalog), pilot accounts Robi + EBL + BRAC + UP, and forms → deli-ecom email-config. The admin panel already has Product, Order, DCP/DCAP, Customer, Contact, Configuration and User management.",
- w:1000,h:680,
- labels:[{cx:170,y:118,t:"Inventory"},{cx:500,y:118,t:"Customers & pricing"},{cx:830,y:118,t:"Forms & notifications"}],
+ title:"Admin set-up – inventory upload, D2C + B2B prices, accounts, forms",
+ desc:"Admin portal manages inventory and both price lists. Inventory is updated by uploading a catalogue file (qty, price etc.) with a validate and preview step. D2C price feeds the public storefront; B2B price feeds account pricing and RFQ offers. Also: account-wise catalog, separate e-com stock, pilot accounts and form email-config.",
+ w:1060,h:880,
+ labels:[{cx:200,y:132,t:"Inventory & catalogue upload"},{cx:560,y:132,t:"Prices & customers"},{cx:920,y:132,t:"Forms & notifications"}],
  nodes:[
-  N("a0","adm",500,20,360,56,"Existing Admin panel (Super Admin)","Products · Orders · DCP/DCAP · Customers · Contacts · Config","note",{p:"screenshot",d:"Current Deli admin: 227 products with price and variants, categories, inventory, order management, customer management, contact management, configuration, user management."}),
-  N("a1","adm",170,140,250,56,"Inventory module","","note",{p:"p.3",d:"Circled 'Inventory' on page 3."}),
-  N("a2","adm",170,240,250,64,"Separate stock bucket for E-comm","not shared with other channels","note",{p:"p.3",d:"Notes: 'Separate stock → E-comms → Inventory'. E-commerce sells only from its own allocated stock.",dev:["Stock location/bucket 'E-commerce' per SKU.","Storefront availability reads this bucket only."],q:"Is this a real separate warehouse stock or an allocation from main stock? Who tops it up?"}),
-  N("a3","adm",170,350,250,64,"Reserve on order / offer-accept","release on cancel / expiry","sug",{loop:true,d:"Prevents overselling between D2C orders and accepted B2B offers sharing one bucket. Release on cancel, failed booking or offer expiry.",risk:["Without reservation, a big RFQ and D2C orders can both claim the last units."]}),
-  N("a4","adm",170,460,250,64,"Low-stock alert","+ top-up request to stock owner","sug",{d:"Alert when e-com bucket falls below a threshold; ties to the weekly reorder process."}),
-  N("a5","adm",500,140,250,64,"Customer Management","B2B accounts · pilot: Robi, EBL, BRAC, UP","note",{p:"p.3",d:"Circled 'Robi + EBL + BRAC + UP' on page 3, read as the first B2B accounts to onboard.",q:"Are these the pilot customers? What does 'UP' stand for?"}),
-  N("a6","adm",500,250,250,56,"Account Manager assignment","default status = Pending","note",{p:"p.3",d:"Notes: Account Manager → Acc [new] → Pending (default). Each B2B account has an owner."}),
-  N("a7","adm",500,350,250,64,"Account-wise catalog + price","e.g. 100 → 70","note",{p:"p.3",d:"Notes: 'Acc separate price → Catalog'. Catalog assigned per account with its own prices."}),
-  N("a8","adm",500,460,250,64,"Customer groups (Corporate / Edu)","group price list, account override","sug",{d:"Avoid setting prices account by account. Create groups, apply a price list to the group, allow per-account exceptions."}),
-  N("a9","adm",500,570,250,56,"Price precedence rule","Offer > Account > Default","sug",{d:"One fixed rule so dev and Account Managers agree which price wins."}),
-  N("a10","adm",830,140,250,56,"Configuration","","note",{p:"p.3",d:"Existing Configuration section of admin."}),
-  N("a11","sys",830,240,250,64,"Forms: B2B registration · RFQ · contact","","note",{p:"p.3",d:"Notes: 'form → (x) deli-ecom / email-config'. Forms feed an email configuration for the deli-ecom site.",q:"Which forms are meant here and who receives each?"}),
-  N("a12","sys",830,350,250,64,"deli-ecom › email-config","recipients / sender per form","note",{p:"p.3",d:"Configurable recipients per form (e.g. B2B registration → sales head; RFQ → assigned Account Manager)."}),
-  N("a13","sys",830,460,250,64,"Save every submission in admin inbox","email is only a notification","sug",{loop:true,d:"If email config breaks or lands in spam, requests are lost. Store first, then email, with a retry queue.",risk:["Email-only = single point of failure."]}),
-  N("a14","sys",830,570,250,56,"Auto-acknowledge to customer","email / SMS with reference no.","sug",{d:"Customer immediately knows the registration or RFQ arrived."})
+  N("a0","adm",560,20,400,56,"Existing Admin portal (Super Admin)","Products · Orders · Inventory · Customers · Contacts · Config","note",{p:"screenshot",d:"Current Deli admin: 227 products with price and variants, categories, inventory, order, DCP/DCAP, customer, contact, configuration and user management. Inventory and both price lists (D2C and B2B) are maintained here."}),
+  N("a1","adm",200,140,250,56,"Inventory module","","note",{p:"p.3",d:"Circled 'Inventory' on page 3. Entry point for stock and catalogue updates."}),
+  N("u1","adm",200,236,250,64,"Upload catalogue (Excel / CSV)","SKU · name · qty · D2C price · B2B price · category","note",{p:"23-Nov update",d:"Inventory is updated by uploading a catalogue file with quantity, price and other product fields.",dev:["Downloadable template with fixed columns: SKU, product name, category, qty, D2C price, B2B price, status, image URL (optional).","SKU is the unique key: existing SKU = update, new SKU = create.","Upload history: who, when, file name, rows changed."],q:"Which columns must the template have? Can it also create new products, or only update existing SKUs?"}),
+  N("u2","adm",200,340,250,64,"Validate file","SKU match · numeric qty/price · duplicates","sug",{loop:true,d:"Check the file before anything is saved. Show a downloadable error report with row numbers; the user fixes the file and re-uploads.",dev:["Reject the whole file or only bad rows (decide)?","Block negative qty, blank price, duplicate SKU, unknown category."],risk:["Without validation, one bad row can wipe prices or zero out stock on the live storefront."]}),
+  N("u3","adm",200,444,250,64,"Preview changes → confirm","new / updated / unchanged rows","sug",{d:"Show a before/after table (old qty/price vs new) and apply only after the user clicks Confirm. Keep a rollback to the previous version.",dev:["Highlight price changes above X% as warnings."]}),
+  N("a2","adm",200,548,250,64,"E-com stock bucket updated","separate from other channels","note",{p:"p.3",d:"Notes: 'Separate stock → E-comms → Inventory'. Confirmed upload writes qty into the e-commerce stock only. Storefront availability reads this bucket.",q:"Does the upload replace stock (absolute qty) or add to it (+qty)? Who tops it up and how often?"}),
+  N("a3","adm",200,652,250,64,"Reserve on order / offer-accept","release on cancel / expiry","sug",{loop:true,d:"Prevents overselling between D2C orders and accepted B2B offers sharing one bucket. Release on cancel, failed booking or offer expiry.",risk:["A re-upload with absolute qty can overwrite reserved units; show reserved qty in the preview."]}),
+  N("a4","adm",200,756,250,64,"Low-stock alert","+ top-up request to stock owner","sug",{d:"Alert when e-com bucket falls below a threshold; ties to the weekly reorder process."}),
+
+  N("a5","adm",560,140,250,64,"Customer Management","B2B accounts · pilot: Robi, EBL, BRAC, UP","note",{p:"p.3",d:"Circled 'Robi + EBL + BRAC + UP' on page 3, read as the first B2B accounts to onboard.",q:"Are these the pilot customers? What does 'UP' stand for?"}),
+  N("a6","adm",560,244,250,56,"Account Manager assignment","default status = Pending","note",{p:"p.3",d:"Notes: Account Manager → Acc [new] → Pending (default). Each B2B account has an owner."}),
+  N("p1","adm",560,340,300,64,"Price update in Admin","by catalogue upload or edit per SKU","note",{p:"23-Nov update",d:"Admin updates both price lists: D2C price and B2B price. Same upload file can carry both columns, or edit one SKU manually.",dev:["Two separate price fields per SKU: D2C price and B2B price.","Price change log (old, new, who, when).","Optional: schedule a price change for a date (e.g. promo start)."],q:"Can B2B price be blank (= not sold to B2B, or fall back to D2C price)?"}),
+  N("p2","adm",472,444,165,72,"D2C price","→ public storefront","note",{p:"23-Nov update",d:"Default selling price shown to every D2C visitor. Coupons apply on top of this price."}),
+  N("p3","adm",648,444,165,72,"B2B price","→ approved B2B accounts","note",{p:"23-Nov update",d:"Base price for B2B. Approved accounts see their own price (account price list or % off this base). Offer price on an RFQ overrides it."}),
+  N("a7","adm",560,556,250,64,"Account-wise catalog + price","e.g. 100 → 70","note",{p:"p.3",d:"Notes: 'Acc separate price → Catalog'. Catalog assigned per account with its own prices.",q:"Is 100→70 a fixed % discount or a per-SKU price list per account?"}),
+  N("a8","adm",560,660,250,64,"Customer groups (Corporate / Edu)","group price list, account override","sug",{d:"Avoid setting prices account by account. Create groups, apply a price list to the group, allow per-account exceptions."}),
+  N("a9","adm",560,764,300,56,"Price precedence rule","D2C: D2C price · B2B: Offer > Account > B2B base","sug",{d:"One fixed rule so dev and Account Managers agree which price wins. D2C visitors always see the D2C price; B2B users never see D2C price in their listing."}),
+
+  N("a10","adm",920,140,250,56,"Configuration","","note",{p:"p.3",d:"Existing Configuration section of admin."}),
+  N("a11","sys",920,236,250,64,"Forms: B2B registration · RFQ · contact","","note",{p:"p.3",d:"Notes: 'form → (x) deli-ecom / email-config'. Forms feed an email configuration for the deli-ecom site.",q:"Which forms are meant here and who receives each?"}),
+  N("a12","sys",920,340,250,64,"deli-ecom › email-config","recipients / sender per form","note",{p:"p.3",d:"Configurable recipients per form (e.g. B2B registration → sales head; RFQ → assigned Account Manager)."}),
+  N("a13","sys",920,444,250,64,"Save every submission in admin inbox","email is only a notification","sug",{loop:true,d:"If email config breaks or lands in spam, requests are lost. Store first, then email, with a retry queue.",risk:["Email-only = single point of failure."]}),
+  N("a14","sys",920,548,250,56,"Auto-acknowledge to customer","email / SMS with reference no.","sug",{d:"Customer immediately knows the registration or RFQ arrived."})
  ],
  edges:[
   E("a0","a1","b","t",""),E("a0","a5","b","t",""),E("a0","a10","b","t",""),
-  E("a1","a2","b","t",""),E("a2","a3","b","t",""),E("a3","a4","b","t",""),
-  E("a5","a6","b","t",""),E("a6","a7","b","t",""),E("a7","a8","b","t",""),E("a8","a9","b","t",""),
+  E("a1","u1","b","t",""),E("u1","u2","b","t",""),
+  E("u2","u1","l","l","re-upload",{k:"loop",via:[{x:40,y:372},{x:40,y:268}]}),
+  E("u2","u3","b","t","OK"),E("u3","a2","b","t","Confirm"),E("a2","a3","b","t",""),E("a3","a4","b","t",""),
+  E("a5","a6","b","t",""),E("a6","p1","b","t",""),
+  E("p1","p2","b","t",""),E("p1","p3","b","t",""),
+  E("p3","a7","b","t",""),E("a7","a8","b","t",""),E("a8","a9","b","t",""),
+  E("u1","p1","r","l","same file can carry prices",{k:"sug",via:[{x:380,y:268},{x:380,y:372}]}),
   E("a10","a11","b","t",""),E("a11","a12","b","t",""),E("a12","a13","b","t",""),E("a13","a14","b","t","")
  ]
 }
@@ -282,7 +312,8 @@ const MM={t:"Deli E-com: D2C + B2B",c:[
   {t:"Customer-wise",c:[{t:"Listing"},{t:"Add to RFQ"},{t:"RFQ cart"},{t:"Checkout / Submit RFQ"},{t:"Offer price"},{t:"Negotiation cap + expiry",s:1}]},
   {t:"Separate price",c:[{t:"Catalog per account"},{t:"e.g. 100 → 70"},{t:"Price precedence rule",s:1}]}]},
  {t:"Back-office",c:[
-  {t:"Separate stock for E-comm",c:[{t:"Inventory"},{t:"Reserve on order / offer",s:1}]},
+  {t:"Inventory",c:[{t:"Separate stock for E-comm"},{t:"Upload catalogue (qty, price etc.)"},{t:"Validate + preview before apply",s:1},{t:"Reserve on order / offer",s:1}]},
+  {t:"Prices in Admin",c:[{t:"D2C price"},{t:"B2B price"},{t:"Price change log",s:1}]},
   {t:"Pilot accounts",c:[{t:"Robi"},{t:"EBL"},{t:"BRAC"},{t:"UP"}]},
   {t:"Forms → email-config",c:[{t:"deli-ecom"},{t:"Admin inbox backup",s:1}]}]}
 ]};
