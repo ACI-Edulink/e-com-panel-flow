@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deli E-commerce – D2C & B2B Flow (draft for MIS team)</title>
+<style>
+:root{
+  --bg:#f6f5f2;--surface:#fff;--ink:#1d1d1f;--ink2:#55555b;--muted:#7a7a80;--line:#d9d7d0;--brand:#c8102e;--brand-soft:#fdecef;
+  --start:#2b2f3a;--startink:#fff;
+  --proc-bg:#fff;--proc-bd:#8f8d96;
+  --dec-bg:#e8f1fd;--dec-bd:#3b78c9;
+  --sys-bg:#e2f5f0;--sys-bd:#14917a;
+  --adm-bg:#f0eafb;--adm-bd:#7a4fc4;
+  --sug-bg:#fff5da;--sug-bd:#d98a00;
+  --loop:#d62839;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#161618;--surface:#222226;--ink:#f1f1f3;--ink2:#c3c3c9;--muted:#8d8d95;--line:#3a3a40;--brand:#ff4d68;--brand-soft:#3a1c22;
+  --start:#eceef5;--startink:#16171c;--proc-bg:#2a2a2f;--proc-bd:#7d7b86;--dec-bg:#1c2b44;--dec-bd:#5d9bf0;
+  --sys-bg:#14332e;--sys-bd:#33c3a8;--adm-bg:#2a2140;--adm-bd:#a98af0;--sug-bg:#3a2e10;--sug-bd:#f0a830;--loop:#ff6b7a}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px}
+header{background:var(--surface);border-top:4px solid var(--brand);padding:14px 20px 10px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:19px}
+header p{margin:4px 0 0;color:var(--ink2);font-size:13px}
+.tabs{display:flex;gap:4px;padding:10px 20px 0;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{border:1px solid transparent;border-bottom:none;background:none;color:var(--ink2);padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;font:inherit;font-weight:600}
+.tab:hover{background:var(--bg)}
+.tab.on{background:var(--bg);color:var(--brand);border-color:var(--line);margin-bottom:-1px}
+.wrap{display:grid;grid-template-columns:1fr 340px;gap:0;min-height:calc(100vh - 150px)}
+.main{padding:14px 20px;min-width:0}
+.intro{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.intro h2{margin:0 0 3px;font-size:16px}
+.intro p{margin:0;color:var(--ink2);font-size:13px;line-height:1.45}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:7px;padding:5px 11px;cursor:pointer;font:inherit;font-size:13px}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.pri{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.pri:hover{color:#fff;opacity:.9}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:var(--ink2);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.lg{width:18px;height:12px;border:1.5px solid;border-radius:3px;display:inline-block}
+.canvas{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:calc(100vh - 290px);min-height:380px}
+aside{border-left:1px solid var(--line);background:var(--surface);padding:16px;overflow:auto;max-height:calc(100vh - 150px);position:sticky;top:0}
+aside h3{margin:0 0 4px;font-size:16px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;margin-right:4px}
+.b-note{background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+.b-sug{background:var(--sug-bg);color:var(--sug-bd);border:1px solid var(--sug-bd)}
+.b-loop{background:var(--brand-soft);color:var(--loop);border:1px solid var(--loop)}
+aside h4{margin:14px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+aside p,aside li{font-size:13px;line-height:1.5;color:var(--ink2)}
+aside ul{padding-left:18px;margin:4px 0}
+.qbox{background:var(--sug-bg);border-left:3px solid var(--sug-bd);padding:6px 10px;border-radius:4px;font-size:13px;margin-top:8px}
+.hint{color:var(--muted);font-size:13px;line-height:1.5}
+/* svg */
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.node{cursor:pointer}
+.node .shape{stroke-width:1.6;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.12))}
+.t-proc .shape{fill:var(--proc-bg);stroke:var(--proc-bd)}
+.t-dec .shape{fill:var(--dec-bg);stroke:var(--dec-bd)}
+.t-sys .shape{fill:var(--sys-bg);stroke:var(--sys-bd)}
+.t-adm .shape{fill:var(--adm-bg);stroke:var(--adm-bd)}
+.t-start .shape,.t-end .shape{fill:var(--start);stroke:var(--start)}
+.t-start .lbl,.t-end .lbl,.t-start .sub,.t-end .sub{fill:var(--startink)}
+.src-sug .shape{fill:var(--sug-bg);stroke:var(--sug-bd);stroke-dasharray:6 4}
+.src-sug.t-start .shape,.src-sug.t-end .shape{fill:var(--sug-bg)}
+.src-sug.t-start .lbl,.src-sug.t-end .lbl,.src-sug.t-start .sub,.src-sug.t-end .sub{fill:var(--ink)}
+.lbl{fill:var(--ink);font-size:13px;font-weight:600}
+.sub{fill:var(--ink2);font-size:11px}
+.node:hover .shape{stroke-width:2.6}
+.node.sel .shape{stroke:var(--brand)!important;stroke-width:3.2}
+.node:focus{outline:none}
+.node:focus-visible .shape{stroke:var(--brand);stroke-width:3.2}
+.tag rect{fill:var(--sug-bd)}
+.tag text{fill:#fff;font-size:9px;font-weight:700}
+.lpb circle{fill:var(--loop)}
+.lpb text{fill:#fff;font-size:11px;font-weight:700}
+.edge path{fill:none;stroke:var(--ink2);stroke-width:1.5}
+.edge.loop path{stroke:var(--loop);stroke-dasharray:6 4}
+.edge.e-sug:not(.loop) path{stroke:var(--sug-bd);stroke-dasharray:2 4;stroke-width:1.8}
+.edge.hi path{stroke-width:2.8}
+.edge .el rect{fill:var(--surface);stroke:var(--line)}
+.edge .el text{fill:var(--ink2);font-size:10.5px}
+.edge.loop .el text{fill:var(--loop)}
+.edge.loop .el rect{stroke:var(--loop)}
+.lane{fill:var(--muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.notes-only .src-sug,.notes-only .edge.e-sug{opacity:.13}
+#mAr{fill:var(--ink2)}#mAl{fill:var(--loop)}#mAs{fill:var(--sug-bd)}
+/* review */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.card h3{margin:0 0 6px;font-size:15px}
+.card p{margin:4px 0;color:var(--ink2);line-height:1.5;font-size:13px}
+.row{display:grid;grid-template-columns:48px 1fr 150px;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:none}
+.sev{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;text-align:center}
+.sev.High{background:var(--brand-soft);color:var(--loop)}.sev.Med{background:var(--sug-bg);color:var(--sug-bd)}.sev.Low{background:var(--bg);color:var(--ink2)}
+select,textarea{font:inherit;font-size:13px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px;width:100%}
+textarea{min-height:44px;resize:vertical}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:12px}
+.chip.x{border-color:var(--loop);color:var(--loop)}
+.fl{font-size:12px;color:var(--muted)}
+.qrow{padding:10px 0;border-top:1px solid var(--line)}
+.qrow:first-of-type{border-top:none}
+.qrow b{font-size:13px}
+.mm-node{cursor:pointer}
+.mm-node rect{stroke-width:1.5;fill:var(--surface);stroke:var(--proc-bd)}
+.mm-node.d0 rect{fill:var(--brand);stroke:var(--brand)}
+.mm-node.d0 text{fill:#fff;font-weight:700}
+.mm-node.d1 rect{fill:var(--dec-bg);stroke:var(--dec-bd)}
+.mm-node.sug rect{fill:var(--sug-bg);stroke:var(--sug-bd);stroke-dasharray:5 3}
+.mm-node text{fill:var(--ink);font-size:12.5px}
+.mm-node .pm{fill:var(--muted);font-size:11px}
+.mm-link{fill:none;stroke:var(--line);stroke-width:2}
+aside.hide{display:none}.wrap.noside{grid-template-columns:1fr}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}aside{position:static;max-height:none;border-left:none;border-top:1px solid var(--line)}.row{grid-template-columns:1fr}}
+@media print{.tabs,.toolbar,aside,.legend,.noprint{display:none!important}.wrap{display:block}.canvas{max-height:none;overflow:visible}body{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Deli E-commerce panel – D2C + B2B flow <span style="font-weight:400;color:var(--muted)">· draft v1 for MIS Dev team</span></h1>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<div class="wrap">
+  <div class="main" id="main"></div>
+  <aside id="panel"></aside>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const N=(id,t,cx,y,w,h,l,s,src,o={})=>Object.assign({id,t,cx,y,w,h,l,s,src},o);
+const E=(f,t,fp,tp,l,o={})=>Object.assign({f,t,fp,tp,l},o);
+
+const FLOWS={
+overview:{
+ title:"Overview – one storefront, two journeys",
+ desc:"Notes page 1: E-com splits into D2C and B2B. A segment on the home page sends corporate visitors to a request-a-quote path. Click a blue/white box and use the button to open that flow.",
+ w:1000,h:640,labels:[],
+ nodes:[
+  N("o1","start",500,20,240,52,"Visitor opens Deli E-commerce","", "note",{p:"p.1",d:"Entry point for every visitor. The live site today has one shopper journey (cart, RFQ Service link, 'Want Deli products for your organization?' prompt). Notes ask for two clearly separated journeys."}),
+  N("o2","dec",500,115,280,100,"Who is buying?","Home-page segment","note",{p:"p.1 ③",d:"Notes: 'In home page a segment → Corporate purchase? Request for a quote.' A visible segment on the home page routes corporate buyers to B2B; everyone else continues normal shopping.",dev:["Home-page segment block/banner: 'Shop for yourself' vs 'Corporate / Institute purchase – Request a quote'.","Corporate link goes to B2B login/registration, never to the normal cart.","Track clicks per segment (analytics event)."]}),
+  N("o3","proc",220,280,260,70,"D2C – individual shopper","Direct checkout · signup optional","note",{p:"p.1",go:"d2c",d:"Retail path: browse, cart, checkout without mandatory account, 3PL/Steadfast delivery."}),
+  N("o9","proc",500,280,220,70,"Returning B2B user","auto-routed to B2B view","sug",{d:"Once an approved B2B user logs in, skip the segment choice and show B2B listing + account prices. Prevents a B2B customer buying at D2C price through the normal cart (or seeing the wrong price).",q:"Should approved B2B users still be allowed to buy at D2C price? Or RFQ only?"}),
+  N("o4","proc",780,280,260,70,"B2B – corporate / edu buyer","Approval → account price → RFQ","note",{p:"p.2–3",go:"b2b",d:"Controlled path: registration form, approval by Account Manager, customer-wise catalog/prices, Add to RFQ, Submit RFQ, offer price."}),
+  N("o5","sys",220,400,260,70,"Order + 3PL / Steadfast","Pay, ship, track","note",{p:"p.1",d:"Order goes straight to fulfilment via 3PL / Steadfast API."}),
+  N("o6","proc",780,400,260,70,"RFQ → offer price → order","Negotiated, account-specific","note",{p:"p.2–3",d:"B2B never checks out directly: it submits an RFQ; Account Manager returns an offer price; the accepted offer becomes an order."}),
+  N("o7","adm",500,520,320,70,"Existing Admin panel","Order Mgmt · Inventory (separate e-com stock) · Customers","note",{p:"p.3 + screenshot",go:"admin",d:"Both journeys land in the same admin panel. Notes add a separate e-com stock bucket, account-wise prices and form email-config."})
+ ],
+ edges:[E("o1","o2","b","t",""),E("o2","o3","l","t","Individual"),E("o2","o4","r","t","Corporate / RFQ"),E("o2","o9","b","t","Logged-in B2B"),E("o9","o4","r","l",""),E("o3","o5","b","t",""),E("o4","o6","b","t",""),E("o5","o7","b","l",""),E("o6","o7","b","r","")]
+},
+
+d2c:{
+ title:"D2C – individual shopper flow",
+ desc:"Notes page 1. Signup is optional and direct checkout is possible. Promotion = coupon codes + promo banners, with upsell/cross-sell at checkout. Fulfilment via 3PL / Steadfast API. Checkout form stays as current.",
+ w:1000,h:1200,labels:[],
+ nodes:[
+  N("d1","start",450,20,220,52,"Browse catalog / home","Promo banners shown here","note",{p:"p.1",d:"Promotion → Promo banner. Banners on home/category pages (Deli site currently has a school stationery and calculators banner).",dev:["Admin-managed promo banner (image, link, start/end date, active flag)."]}),
+  N("d2","proc",450,112,220,56,"Add to cart","","note",{p:"p.1",d:"Existing cart behaviour (Add To Cart / Quick Add)."}),
+  N("d3","proc",450,208,240,64,"Checkout page upsell / cross-sell","Suggested add-ons","note",{p:"p.1",d:"Notes: 'Checkout upsell / cross sells'. Show related or higher-value items at checkout before payment.",dev:["Per product: define cross-sell list and upsell target in Product Management.","Added item recalculates totals and coupon eligibility (see loop)."],risk:["Upsell changes cart total → coupon eligibility may change → price must be recomputed in one place."],loop:true}),
+  N("d4","dec",450,312,240,96,"Signed in?","Signup not mandatory","note",{p:"p.1",d:"Notes: Account creation by customer, Signup / Not mandatory → Direct checkout possible. Guest can pay without an account."}),
+  N("d5","proc",860,332,200,56,"Sign up (optional)","Email/phone + OTP","note",{p:"p.1",d:"Customer-initiated signup. Never forced at checkout.",dev:["Phone or email as unique key; OTP verification."]}),
+  N("d6","proc",450,450,220,56,"Checkout form","As current – unchanged","note",{p:"p.1",d:"Notes: 'Checkout form → As current'. No change requested; keep the present fields and validations."}),
+  N("d7","dec",450,550,240,96,"Coupon valid?","or none entered","note",{p:"p.1",d:"Coupon codes are in the promotion list. Valid or no coupon → continue; invalid → error and retry.",dev:["Coupon rules: type (% / flat), min cart, validity dates, usage limit, per-user limit, product/category scope, can stack? (suggest: no)."]}),
+  N("d7b","proc",860,570,200,56,"Show error · retry / remove","max 5 attempts","sug",{loop:true,d:"Retry loop for invalid coupons. Cap attempts and show a specific reason (expired, min amount, already used).",risk:["Unlimited retries allow coupon guessing / brute force."]}),
+  N("d8","proc",450,690,220,56,"Place order + payment","COD / online – as current","note",{p:"p.1",d:"Payment methods assumed unchanged.",q:"Which payment methods are live today (COD, bKash, card)? Any to add?"}),
+  N("d9","proc",450,786,220,56,"Order created","Shows in Admin → Order Mgmt","note",{p:"p.1",d:"Order record created; stock deducted from the separate e-commerce stock bucket (see Admin flow)."}),
+  N("s1","proc",860,786,200,64,"Offer 'create account'","after guest order","sug",{d:"One-click 'save my details' after a guest order. Link the guest order to the new account (match phone/email after OTP).",risk:["Without matching, guest orders never appear in the customer's later account."]}),
+  N("d10","sys",450,882,240,64,"Fulfilment: 3PL / Steadfast API","Parcel booking + tracking ID","note",{p:"p.1",d:"Fulfilment → 3PL / Steadfast API. Order data pushed via API; tracking ID stored on the order.",dev:["Send order to Steadfast API on confirmation; store consignment ID + tracking link.","Webhook/poll for status updates → order status.","Idempotency key so a retry never creates a duplicate parcel."]}),
+  N("d11","dec",450,982,240,96,"Booking OK?","","sug",{d:"API can fail (timeout, invalid address, credit). Needs an explicit failure path.",loop:true}),
+  N("d12","proc",860,998,200,64,"Auto-retry ×3 → manual queue","'Booking failed' list in admin","sug",{loop:true,d:"Retry with back-off, then surface in an admin exception queue so an operator can fix address and re-send or dispatch manually.",dev:["Order status 'Booking failed' + alert email to ops."]}),
+  N("d13","end",450,1120,240,52,"Delivered · status to customer","SMS / email updates","note",{p:"p.1",d:"Tracking status flows back to the customer. Suggest: order confirmation + shipped + delivered messages."})
+ ],
+ edges:[
+  E("d1","d2","b","t",""),E("d2","d3","b","t",""),E("d3","d4","b","t",""),
+  E("d4","d6","l","l","Already signed in",{via:[{x:140,y:360},{x:140,y:478}]}),
+  E("d4","d5","r","l","Wants an account"),
+  E("d4","d6","b","t","Guest · direct checkout ✓"),
+  E("d5","d6","b","r","",{to:-12}),
+  E("d6","d7","b","t",""),
+  E("d7","d7b","r","l","Invalid"),
+  E("d7b","d6","t","r","retry",{to:12,k:"loop"}),
+  E("d7","d8","b","t","Valid / none"),
+  E("d8","d9","b","t",""),
+  E("d9","s1","r","l","",{k:"sug"}),
+  E("d9","d10","b","t",""),
+  E("d10","d11","b","t",""),
+  E("d11","d12","r","l","No"),
+  E("d12","d10","t","r","retry",{k:"loop"}),
+  E("d11","d13","b","t","Yes")
+ ]
+},
+
+b2b:{
+ title:"B2B – corporate / edu flow (account → approval → RFQ → offer)",
+ desc:"Notes pages 2–3. Registration from the home page with a separate form (corporate + edu); the customer creates the account but it needs approval by the Account Manager (default = Pending). Approved accounts see a customer-wise catalog with their own price, add to an RFQ list, submit the RFQ, and the Account Manager answers with an offer price.",
+ w:1000,h:1600,labels:[],
+ nodes:[
+  N("b1","start",450,20,260,52,"Home page: Corporate purchase?","Request-a-quote entry","note",{p:"p.1 ③, p.2",d:"Home-page segment. Live site already has an 'RFQ Service' menu link and an organisation prompt – both should lead here."}),
+  N("b2","proc",450,112,240,64,"B2B registration form","Separate form: Corporate + Edu","note",{p:"p.2",d:"Notes: 'Form separate for corp + edu', account creation 'In home'. A dedicated B2B form, not the D2C signup.",dev:["Fields: company/institute name, type (Corporate / Edu), contact person, phone, email, address, BIN/TIN (optional), expected monthly volume.","Submission saved in admin and sent to email-config recipients (see Admin flow)."],q:"Are Corporate and Edu on one form with a type dropdown, or two separate forms?"}),
+  N("b3","proc",450,216,240,64,"Account created by customer","Status = PENDING (default)","note",{p:"p.2–3",d:"Notes: 'By customer ✓ → Approval req'd' and (p.3) 'Pending – default'. The account exists immediately but cannot see prices or submit RFQs until approved.",dev:["Account status field: Pending (default) / Approved / Rejected / Suspended.","Pending users: can log in, see 'under review' message only."]}),
+  N("b4","dec",450,320,260,100,"Account Manager approval","","note",{p:"p.2–3",loop:true,d:"Approval required. The Account Manager reviews and approves or rejects. Notes do not say what happens if nobody acts.",dev:["Approval queue in Customer Management with filter: Pending.","Approve = assign Account Manager + map price list/catalog."],q:"Who approves – the Account Manager, sales head, or admin?"}),
+  N("b4r","proc",860,342,210,56,"Rejected · reason sent","may re-apply (same record)","sug",{loop:true,d:"Rejection needs a reason message and a re-apply path that re-opens the same record, not a duplicate account.",risk:["Without a unique key (email / phone / BIN) re-applying creates duplicate accounts."]}),
+  N("b4l","proc",140,342,200,56,"No action in 48h","reminder → escalate","sug",{loop:true,d:"Pending is the default state, so it can last forever. Add SLA: reminder to Account Manager at 24–48h, escalate to admin/manager next, auto-email customer 'we are reviewing'."}),
+  N("b5","proc",450,460,240,64,"Approved · Account Manager assigned","Catalog + price list mapped","note",{p:"p.3",d:"Account manager attached to the account; separate price and catalog linked (notes: 'Acc separate price → Catalog').",dev:["Customer-wise catalog and price list set at approval.","Welcome email with login + Account Manager contact."]}),
+  N("b6","proc",450,564,240,64,"Customer-wise listing","Account price shown, e.g. 100 → 70","note",{p:"p.2–3",d:"Notes: 'Customer wise → Listing' and 'Acc separate price → Catalog … 100 → 70'. Each approved account sees only its own catalog with its own price (the 100→70 sketch suggests a discounted price vs list).",dev:["Price resolution order: Offer price (RFQ) > Account price list > Default price.","Hide prices from Pending / logged-out users."],q:"Is 100→70 a fixed % discount or a per-SKU price list?"}),
+  N("b7","proc",450,668,240,56,"Add to RFQ","instead of Add to Cart","note",{p:"p.2",d:"Listing action is 'Add to RFQ'. B2B users do not add to a normal cart."}),
+  N("b8","proc",450,764,240,64,"RFQ cart","Editable list of items + qty","note",{p:"p.2",loop:true,d:"The box on the page: RFQ list. User can keep adding from listing (loop is normal). Make it persistent per account, not per browser session.",dev:["Save RFQ draft to the account; survives logout."]}),
+  N("b9","proc",450,868,240,56,"Checkout / Submit RFQ","no payment at this step","note",{p:"p.2",d:"Notes: 'Checkout / Submit RFQ'. Submitting creates an RFQ record, not an order.",dev:["Optional fields: delivery location, needed-by date, note / PO reference."]}),
+  N("b10","sys",450,964,240,64,"RFQ received","Account Manager notified (email-config)","note",{p:"p.3",d:"Notification to the assigned Account Manager via the form → deli-ecom email-config. Customer gets an acknowledgement.",dev:["RFQ number, saved in admin inbox even if email fails."]}),
+  N("b11","proc",450,1068,240,64,"Account Manager sets OFFER PRICE","reviews items, qty, stock","note",{p:"p.3",loop:true,d:"Notes: 'RFQ → offer price'. Account Manager checks quantity against separate e-com stock and enters the offer price per line.",dev:["Offer has: price per item, validity date, delivery charge, payment terms, note.","Keep version history of every offer."]}),
+  N("b12","dec",450,1172,260,100,"Customer response?","","sug",{loop:true,d:"Notes stop at 'offer price'. We still need what happens next: accept, counter, or decline/expire."}),
+  N("b12r","proc",860,1194,210,56,"Counter-offer / revision","max 3 rounds","sug",{loop:true,d:"Negotiation loop. Cap rounds, show offer expiry, keep version history. Unlimited loops stall deals.",risk:["No cap = endless back-and-forth; no expiry = stale prices."]}),
+  N("b12l","end",140,1194,200,56,"RFQ closed","declined / offer expired","sug",{d:"Close the RFQ, release any reserved stock, notify both sides."}),
+  N("b13","proc",450,1312,240,64,"Offer accepted → Order","Stock reserved from e-com inventory","sug",{d:"Accepted offer is converted to an order with the locked offer price. Stock moves from available to reserved in the separate e-commerce stock.",q:"Payment terms for B2B: advance, credit, or PO/invoice?"}),
+  N("b14","sys",450,1416,240,64,"Fulfilment","3PL / courier or own delivery?","sug",{d:"Steadfast/3PL fits parcels. Bulk corporate orders may need pallet/own-van delivery.",q:"Is Steadfast OK for bulk B2B orders, or do we use another carrier?"}),
+  N("b15","end",450,1520,260,52,"Delivered · invoice · repeat RFQ","","sug",{d:"Close with tax invoice (VAT/challan) and offer 'reorder from this RFQ'."})
+ ],
+ edges:[
+  E("b1","b2","b","t",""),E("b2","b3","b","t",""),E("b3","b4","b","t",""),
+  E("b4","b4r","r","l","Reject"),
+  E("b4r","b2","t","r","re-apply",{k:"loop"}),
+  E("b4","b4l","l","r","No action"),
+  E("b4l","b3","t","l","stay pending",{k:"loop"}),
+  E("b4","b5","b","t","Approve"),
+  E("b5","b6","b","t",""),E("b6","b7","b","t",""),E("b7","b8","b","t",""),
+  E("b8","b6","r","r","keep adding items",{k:"loop",via:[{x:650,y:796},{x:650,y:596}]}),
+  E("b8","b9","b","t",""),E("b9","b10","b","t",""),E("b10","b11","b","t",""),E("b11","b12","b","t",""),
+  E("b12","b12r","r","l","Counter"),
+  E("b12r","b11","t","r","negotiate ≤3 rounds",{k:"loop"}),
+  E("b12","b12l","l","r","Decline"),
+  E("b12","b13","b","t","Accept"),
+  E("b13","b14","b","t",""),E("b14","b15","b","t","")
+ ]
+},
+
+admin:{
+ title:"Admin set-up – what must exist behind the storefront",
+ desc:"Notes page 3: separate stock for e-comm (Inventory), separate price per account (catalog), pilot accounts Robi + EBL + BRAC + UP, and forms → deli-ecom email-config. The admin panel already has Product, Order, DCP/DCAP, Customer, Contact, Configuration and User management.",
+ w:1000,h:680,
+ labels:[{cx:170,y:118,t:"Inventory"},{cx:500,y:118,t:"Customers & pricing"},{cx:830,y:118,t:"Forms & notifications"}],
+ nodes:[
+  N("a0","adm",500,20,360,56,"Existing Admin panel (Super Admin)","Products · Orders · DCP/DCAP · Customers · Contacts · Config","note",{p:"screenshot",d:"Current Deli admin: 227 products with price and variants, categories, inventory, order management, customer management, contact management, configuration, user management."}),
+  N("a1","adm",170,140,250,56,"Inventory module","","note",{p:"p.3",d:"Circled 'Inventory' on page 3."}),
+  N("a2","adm",170,240,250,64,"Separate stock bucket for E-comm","not shared with other channels","note",{p:"p.3",d:"Notes: 'Separate stock → E-comms → Inventory'. E-commerce sells only from its own allocated stock.",dev:["Stock location/bucket 'E-commerce' per SKU.","Storefront availability reads this bucket only."],q:"Is this a real separate warehouse stock or an allocation from main stock? Who tops it up?"}),
+  N("a3","adm",170,350,250,64,"Reserve on order / offer-accept","release on cancel / expiry","sug",{loop:true,d:"Prevents overselling between D2C orders and accepted B2B offers sharing one bucket. Release on cancel, failed booking or offer expiry.",risk:["Without reservation, a big RFQ and D2C orders can both claim the last units."]}),
+  N("a4","adm",170,460,250,64,"Low-stock alert","+ top-up request to stock owner","sug",{d:"Alert when e-com bucket falls below a threshold; ties to the weekly reorder process."}),
+  N("a5","adm",500,140,250,64,"Customer Management","B2B accounts · pilot: Robi, EBL, BRAC, UP","note",{p:"p.3",d:"Circled 'Robi + EBL + BRAC + UP' on page 3, read as the first B2B accounts to onboard.",q:"Are these the pilot customers? What does 'UP' stand for?"}),
+  N("a6","adm",500,250,250,56,"Account Manager assignment","default status = Pending","note",{p:"p.3",d:"Notes: Account Manager → Acc [new] → Pending (default). Each B2B account has an owner."}),
+  N("a7","adm",500,350,250,64,"Account-wise catalog + price","e.g. 100 → 70","note",{p:"p.3",d:"Notes: 'Acc separate price → Catalog'. Catalog assigned per account with its own prices."}),
+  N("a8","adm",500,460,250,64,"Customer groups (Corporate / Edu)","group price list, account override","sug",{d:"Avoid setting prices account by account. Create groups, apply a price list to the group, allow per-account exceptions."}),
+  N("a9","adm",500,570,250,56,"Price precedence rule","Offer > Account > Default","sug",{d:"One fixed rule so dev and Account Managers agree which price wins."}),
+  N("a10","adm",830,140,250,56,"Configuration","","note",{p:"p.3",d:"Existing Configuration section of admin."}),
+  N("a11","sys",830,240,250,64,"Forms: B2B registration · RFQ · contact","","note",{p:"p.3",d:"Notes: 'form → (x) deli-ecom / email-config'. Forms feed an email configuration for the deli-ecom site.",q:"Which forms are meant here and who receives each?"}),
+  N("a12","sys",830,350,250,64,"deli-ecom › email-config","recipients / sender per form","note",{p:"p.3",d:"Configurable recipients per form (e.g. B2B registration → sales head; RFQ → assigned Account Manager)."}),
+  N("a13","sys",830,460,250,64,"Save every submission in admin inbox","email is only a notification","sug",{loop:true,d:"If email config breaks or lands in spam, requests are lost. Store first, then email, with a retry queue.",risk:["Email-only = single point of failure."]}),
+  N("a14","sys",830,570,250,56,"Auto-acknowledge to customer","email / SMS with reference no.","sug",{d:"Customer immediately knows the registration or RFQ arrived."})
+ ],
+ edges:[
+  E("a0","a1","b","t",""),E("a0","a5","b","t",""),E("a0","a10","b","t",""),
+  E("a1","a2","b","t",""),E("a2","a3","b","t",""),E("a3","a4","b","t",""),
+  E("a5","a6","b","t",""),E("a6","a7","b","t",""),E("a7","a8","b","t",""),E("a8","a9","b","t",""),
+  E("a10","a11","b","t",""),E("a11","a12","b","t",""),E("a12","a13","b","t",""),E("a13","a14","b","t","")
+ ]
+}
+};
+
+/* ---------- MIND MAP DATA ---------- */
+const MM={t:"Deli E-com: D2C + B2B",c:[
+ {t:"Home page segment",c:[{t:"Corporate purchase?"},{t:"Request for a quote"},{t:"Returning B2B user → B2B view",s:1}]},
+ {t:"D2C",c:[
+  {t:"Account creation",c:[{t:"By customer"},{t:"Signup not mandatory"},{t:"Direct checkout possible"},{t:"Link guest orders to account later",s:1}]},
+  {t:"Fulfilment",c:[{t:"3PL / Steadfast API"},{t:"Retry ×3 → manual queue",s:1}]},
+  {t:"Promotion",c:[{t:"Coupon codes"},{t:"Promo banner"},{t:"Checkout upsell / cross-sell"},{t:"Coupon attempt limit",s:1}]},
+  {t:"Checkout form",c:[{t:"As current"}]}]},
+ {t:"B2B",c:[
+  {t:"Account creation",c:[{t:"In home page"},{t:"Separate form (Corporate + Edu)"},{t:"By customer"},{t:"Approval required"},{t:"Default = Pending"},{t:"SLA + reject reason",s:1}]},
+  {t:"Account Manager",c:[{t:"Approves account"},{t:"Gets RFQ notification"},{t:"Sets offer price"}]},
+  {t:"Customer-wise",c:[{t:"Listing"},{t:"Add to RFQ"},{t:"RFQ cart"},{t:"Checkout / Submit RFQ"},{t:"Offer price"},{t:"Negotiation cap + expiry",s:1}]},
+  {t:"Separate price",c:[{t:"Catalog per account"},{t:"e.g. 100 → 70"},{t:"Price precedence rule",s:1}]}]},
+ {t:"Back-office",c:[
+  {t:"Separate stock for E-comm",c:[{t:"Inventory"},{t:"Reserve on order / offer",s:1}]},
+  {t:"Pilot accounts",c:[{t:"Robi"},{t:"EBL"},{t:"BRAC"},{t:"UP"}]},
+  {t:"Forms → email-config",c:[{t:"deli-ecom"},{t:"Admin inbox backup",s:1}]}]}
+]};
+
+/* ---------- REVIEW DATA ---------- */
+const LOOPS=[
+ {id:"L1",fl:"B2B",sev:"High",t:"RFQ ↔ offer negotiation can loop forever",p:"Customer can counter again and again; no expiry or owner. Offer price can go stale.",f:"Max 3 revision rounds, offer valid-until date, version history per offer, auto-close on expiry, price/stock locked only on acceptance."},
+ {id:"L2",fl:"B2B",sev:"High",t:"Pending (default) has no exit",p:"Notes make Pending the default but there is no SLA, reminder or rejection path. Accounts can sit pending forever.",f:"Reminder at 24–48h, escalate to admin, rejection reason + re-apply, define what Pending users can see (no prices, no RFQ)."},
+ {id:"L3",fl:"B2B",sev:"Med",t:"Reject → re-register creates duplicates",p:"A rejected company re-fills the form and gets a second account.",f:"Unique key on email / phone / BIN. Re-apply re-opens the same record."},
+ {id:"L4",fl:"B2B",sev:"Low",t:"Add to RFQ ↔ browse loop",p:"Expected behaviour, but the RFQ list can be lost on logout or device change.",f:"Persist RFQ draft against the account."},
+ {id:"L5",fl:"D2C",sev:"Med",t:"Coupon retry loop",p:"Invalid coupon → retry with no limit; also allows guessing codes.",f:"Attempt cap, specific error messages, revalidate whenever cart changes."},
+ {id:"L6",fl:"D2C",sev:"Med",t:"Upsell ↔ coupon recalculation",p:"Adding an upsell item changes cart total and may break coupon rules (minimum, excluded items).",f:"One pricing function in fixed order: items → upsell → coupon → shipping → total."},
+ {id:"L7",fl:"D2C",sev:"High",t:"Steadfast booking failure stalls the order",p:"If the API call fails there is no defined next step.",f:"Auto-retry ×3 with back-off, 'Booking failed' admin queue, idempotency key to avoid duplicate parcels."},
+ {id:"L8",fl:"D2C",sev:"Med",t:"Guest order never linked to later account",p:"Direct checkout is allowed, so a customer who signs up later does not see past orders.",f:"Match on phone/email after OTP, attach previous orders; offer 'create account' after guest order."},
+ {id:"L9",fl:"Both",sev:"Med",t:"Same person in D2C and B2B",p:"Same email used for retail and corporate registration, or B2B user buying via normal cart at D2C price.",f:"Single identity with account type; B2B prices only for Approved B2B accounts; clear upgrade path D2C → B2B."},
+ {id:"L10",fl:"Admin",sev:"Med",t:"Form → email is a single point of failure",p:"If email-config breaks, registrations and RFQs vanish.",f:"Save every submission in admin first, email is a notification, retry queue, route to assigned Account Manager."},
+ {id:"L11",fl:"Admin",sev:"High",t:"Separate e-com stock can oversell",p:"D2C orders and accepted B2B offers draw from the same bucket with no reservation.",f:"Reserve on order / offer acceptance, release on cancel / expiry / failed booking, low-stock alert."}
+];
+const STATES=[
+ {n:"B2B account",s:["Pending (default)","Approved","Rejected","Suspended"],x:"Rejected → re-apply → Pending"},
+ {n:"RFQ",s:["Draft","Submitted","Under review","Offered","Accepted","Converted to order"],x:"Offered → Countered → Under review (max 3) · Declined · Expired"},
+ {n:"D2C order",s:["Placed","Confirmed","Booked (3PL)","In transit","Delivered"],x:"Booking failed → retry / manual · Returned"}
+];
+const QUESTIONS=[
+ {id:"Q1",t:"Page 3 top reads 'Account Manager → Pending (default) → RFQ → offer price'. I read it as: new accounts are Pending until the Account Manager approves, and RFQs are answered with an offer price by the same person. Correct?"},
+ {id:"Q2",t:"Who approves a new B2B account: Account Manager, sales head, or admin? Is there an approval SLA?"},
+ {id:"Q3",t:"'Separate stock for E-comms': real separate stock, or an allocation from main stock? Who updates it and how often?"},
+ {id:"Q4",t:"'100 → 70' next to the catalog: fixed % discount per account, or a SKU-wise price list per account?"},
+ {id:"Q5",t:"'Robi + EBL + BRAC + UP': are these the pilot B2B accounts? What does 'UP' stand for?"},
+ {id:"Q6",t:"'form → deli-ecom email-config': which forms (B2B registration, RFQ, contact) and who receives each?"},
+ {id:"Q7",t:"B2B payment after offer acceptance: advance, credit terms, or PO + invoice? VAT / BIN needed on invoice?"},
+ {id:"Q8",t:"Is Steadfast / 3PL fine for bulk B2B orders, or do corporate orders ship another way?"},
+ {id:"Q9",t:"Is 'Edu' a separate segment with its own price list, or just a type under Corporate?"},
+ {id:"Q10",t:"Can an approved B2B user also buy at D2C price through the normal cart, or RFQ only?"},
+ {id:"Q11",t:"D2C payment methods and coupon rules (stacking, min cart, usage limit): any change from today?"}
+];
+
+/* ---------- STATE ---------- */
+let cur="overview",selId=null,scale=1,fitMode=true,notesOnly=false;
+let store={dec:{},ans:{}};
+try{const s=localStorage.getItem("deliflow.v1");if(s)store=JSON.parse(s)}catch(e){}
+function save(){try{localStorage.setItem("deliflow.v1",JSON.stringify(store))}catch(e){}}
+
+const TABS=[["overview","Overview"],["d2c","D2C flow"],["b2b","B2B flow"],["admin","Admin set-up"],["mind","Mind map"]];
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+const mctx=document.createElement("canvas").getContext("2d");
+const LF="600 13px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",SF="400 11px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
+function wrap(t,font,maxW){mctx.font=font;const ws=t.split(" "),out=[];let c="";for(const w of ws){const x=c?c+" "+w:w;if(mctx.measureText(x).width>maxW&&c){out.push(c);c=w}else c=x}if(c)out.push(c);return out}
+function tw(t,font){mctx.font=font;return mctx.measureText(t).width}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- TABS ---------- */
+function buildTabs(){const t=$("#tabs");t.innerHTML="";TABS.forEach(([k,l])=>{const b=document.createElement("button");b.className="tab"+(k===cur?" on":"");b.textContent=l;b.onclick=()=>go(k);t.appendChild(b)})}
+function go(k){cur=k;selId=null;buildTabs();render();window.scrollTo(0,0)}
+
+function render(){
+  const m=$("#main");
+  if(cur==="review"){renderReview(m);panelDefault();return}
+  if(cur==="mind"){renderMind(m);panelMind();return}
+  const f=FLOWS[cur];
+  m.innerHTML=`<div class="intro"><h2>${esc(f.title)}</h2><p>${esc(f.desc)}</p></div>
+  <div class="toolbar">
+    <label class="sw"><input type="checkbox" id="chkNotes"${notesOnly?" checked":""}> Original notes only (fade my suggestions)</label>
+    <button class="btn" id="zo">−</button><button class="btn" id="zi">+</button><button class="btn" id="zf">Fit width</button>
+    <button class="btn" onclick="window.print()">Print / PDF</button>
+  </div>
+  <div class="legend">
+   <span><i class="lg" style="background:var(--start);border-color:var(--start)"></i>Start / end</span>
+   <span><i class="lg" style="background:var(--proc-bg);border-color:var(--proc-bd)"></i>Step</span>
+   <span><i class="lg" style="background:var(--dec-bg);border-color:var(--dec-bd)"></i>Decision</span>
+   <span><i class="lg" style="background:var(--sys-bg);border-color:var(--sys-bd)"></i>System / API / email</span>
+   <span><i class="lg" style="background:var(--adm-bg);border-color:var(--adm-bd)"></i>Admin set-up</span>
+   <span><i class="lg" style="background:var(--sug-bg);border-color:var(--sug-bd);border-style:dashed"></i>My suggestion</span>
+   <span style="color:var(--loop)">↻ part of a loop</span>
+  </div>
+  <div class="canvas" id="canvas"></div>`;
+  $("#chkNotes").onchange=e=>{notesOnly=e.target.checked;applyNotes()};
+  $("#zi").onclick=()=>{fitMode=false;scale=Math.min(2,scale+.15);drawFlow()};
+  $("#zo").onclick=()=>{fitMode=false;scale=Math.max(.4,scale-.15);drawFlow()};
+  $("#zf").onclick=()=>{fitMode=true;drawFlow()};
+  drawFlow();panelDefault();
+}
+function applyNotes(){const c=$("#canvas");if(c)c.classList.toggle("notes-only",notesOnly)}
+
+/* ---------- FLOW DRAWING ---------- */
+function portPt(n,p,o=0){const x=n.cx-n.w/2;switch(p){case"t":return{x:n.cx+o,y:n.y};case"b":return{x:n.cx+o,y:n.y+n.h};case"l":return{x:x,y:n.y+n.h/2+o};default:return{x:x+n.w,y:n.y+n.h/2+o}}}
+function route(s,e,fp,tp,via){
+  if(via&&via.length)return[s,...via,e];
+  if(s.x===e.x||s.y===e.y)return[s,e];
+  const fv=fp==="t"||fp==="b",tv=tp==="t"||tp==="b";
+  if(fv&&tv){const my=(s.y+e.y)/2;return[s,{x:s.x,y:my},{x:e.x,y:my},e]}
+  if(!fv&&!tv){const mx=(s.x+e.x)/2;return[s,{x:mx,y:s.y},{x:mx,y:e.y},e]}
+  if(fv&&!tv)return[s,{x:s.x,y:e.y},e];
+  return[s,{x:e.x,y:s.y},e];
+}
+function pathD(pts,r=9){
+  let d=`M${pts[0].x},${pts[0].y}`;
+  for(let i=1;i<pts.length-1;i++){
+    const a=pts[i-1],b=pts[i],c=pts[i+1];
+    const l1=Math.hypot(b.x-a.x,b.y-a.y),l2=Math.hypot(c.x-b.x,c.y-b.y),rr=Math.min(r,l1/2,l2/2);
+    const p1={x:b.x-(b.x-a.x)/l1*rr,y:b.y-(b.y-a.y)/l1*rr},p2={x:b.x+(c.x-b.x)/l2*rr,y:b.y+(c.y-b.y)/l2*rr};
+    d+=` L${p1.x},${p1.y} Q${b.x},${b.y} ${p2.x},${p2.y}`;
+  }
+  const z=pts[pts.length-1];return d+` L${z.x},${z.y}`;
+}
+function drawFlow(){
+  const f=FLOWS[cur],box=$("#canvas");box.innerHTML="";
+  if(fitMode)scale=Math.max(.45,Math.min(1.15,(box.clientWidth-8)/f.w));
+  const svg=el("svg",{width:f.w*scale,height:f.h*scale,viewBox:`0 0 ${f.w} ${f.h}`,role:"img","aria-label":f.title},box);
+  const defs=el("defs",{},svg);
+  [["mAr","var(--ink2)"],["mAl","var(--loop)"],["mAs","var(--sug-bd)"]].forEach(([id,col])=>{const m=el("marker",{id,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:8,markerHeight:8,orient:"auto"},defs);const p=el("path",{d:"M0,0 L10,5 L0,10 z"},m);p.style.fill=col});
+  const map={};f.nodes.forEach(n=>map[n.id]=n);
+  (f.labels||[]).forEach(l=>{const t=el("text",{x:l.cx,y:l.y,"text-anchor":"middle",class:"lane"},svg);t.textContent=l.t});
+  const eg=el("g",{},svg),ng=el("g",{},svg);
+  f.edges.forEach(e=>{
+    const a=map[e.f],b=map[e.t],s=portPt(a,e.fp,e.fo||0),en=portPt(b,e.tp,e.to||0);
+    const pts=route(s,en,e.fp,e.tp,e.via);
+    const loop=e.k==="loop",sug=loop?(a.src==="sug"||b.src==="sug"||e.k==="loop"&&(a.src==="sug"||b.src==="sug")):(e.k==="sug"||a.src==="sug"||b.src==="sug");
+    const g=el("g",{class:"edge"+(loop?" loop":"")+(sug?" e-sug":""),"data-f":e.f,"data-t":e.t},eg);
+    const p=el("path",{d:pathD(pts),"marker-end":`url(#${loop?"mAl":sug?"mAs":"mAr"})`},g);
+    if(e.l){
+      let bi=0,bl=-1;for(let i=0;i<pts.length-1;i++){const L=Math.hypot(pts[i+1].x-pts[i].x,pts[i+1].y-pts[i].y);if(L>bl){bl=L;bi=i}}
+      const mx=(pts[bi].x+pts[bi+1].x)/2,my=(pts[bi].y+pts[bi+1].y)/2,w=tw(e.l,"10.5px system-ui")+12;
+      const lg=el("g",{class:"el"},g);el("rect",{x:mx-w/2,y:my-9,width:w,height:18,rx:9},lg);
+      const t=el("text",{x:mx,y:my+3.5,"text-anchor":"middle"},lg);t.textContent=e.l;
+    }
+  });
+  f.nodes.forEach(n=>drawNode(ng,n));
+  applyNotes();
+  if(selId)highlight(selId);
+}
+function drawNode(parent,n){
+  const g=el("g",{class:`node t-${n.t} src-${n.src}`,"data-id":n.id,tabindex:0,role:"button","aria-label":n.l},parent);
+  const x=n.cx-n.w/2,y=n.y,w=n.w,h=n.h;
+  if(n.t==="dec")el("polygon",{points:`${n.cx},${y} ${x+w},${y+h/2} ${n.cx},${y+h} ${x},${y+h/2}`,class:"shape"},g);
+  else el("rect",{x,y,width:w,height:h,rx:(n.t==="start"||n.t==="end")?h/2:10,class:"shape"},g);
+  const maxW=n.t==="dec"?w*.56:w-(n.t==="start"||n.t==="end"?30:20);
+  const ll=wrap(n.l,LF,maxW),sl=n.s?wrap(n.s,SF,maxW):[];
+  const total=ll.length*16+sl.length*13+(sl.length?3:0);
+  if(total>h-8)console.warn("TEXT OVERFLOW",n.id,total,h);
+  let ty=y+h/2-total/2;
+  ll.forEach(t=>{const e=el("text",{x:n.cx,y:ty+8,"text-anchor":"middle","dominant-baseline":"central",class:"lbl"},g);e.textContent=t;ty+=16});
+  ty+=sl.length?3:0;
+  sl.forEach(t=>{const e=el("text",{x:n.cx,y:ty+6.5,"text-anchor":"middle","dominant-baseline":"central",class:"sub"},g);e.textContent=t;ty+=13});
+  const dec=n.t==="dec";
+  if(n.src==="sug"){const tg=el("g",{class:"tag"},g),tx=dec?x+w*.08:x+8,ty2=dec?y+h/2-24:y-7;el("rect",{x:tx,y:ty2,width:30,height:14,rx:7},tg);const t=el("text",{x:tx+15,y:ty2+10,"text-anchor":"middle"},tg);t.textContent="NEW"}
+  if(n.loop){const lg=el("g",{class:"lpb"},g),cx=dec?x+w*.92:x+w-6,cy=dec?y+h/2-14:y+2;el("circle",{cx,cy,r:9},lg);const t=el("text",{x:cx,y:cy+4,"text-anchor":"middle"},lg);t.textContent="↻"}
+  g.addEventListener("click",()=>select(n.id));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(n.id)}});
+}
+function highlight(id){
+  document.querySelectorAll(".node").forEach(g=>g.classList.toggle("sel",g.dataset.id===id));
+  document.querySelectorAll(".edge").forEach(g=>g.classList.toggle("hi",g.dataset.f===id||g.dataset.t===id));
+}
+function select(id){selId=id;highlight(id);const n=FLOWS[cur].nodes.find(x=>x.id===id);panelNode(n)}
+
+/* ---------- PANEL ---------- */
+function panelDefault(){setSide(false)}
+function panelMind(){setSide(false)}
+function setSide(on){document.querySelector('aside').classList.toggle('hide',!on);document.querySelector('.wrap').classList.toggle('noside',!on)}
+function panelNode(n){
+  const tl={start:"Start",end:"End",proc:"Step",dec:"Decision",sys:"System / API",adm:"Admin set-up"}[n.t];
+  let h=`<h3>${esc(n.l)}</h3><p>${n.src==="sug"?'<span class="badge b-sug">My suggestion</span>':`<span class="badge b-note">Your notes ${esc(n.p||"")}</span>`}<span class="badge b-note">${tl}</span>${n.loop?'<span class="badge b-loop">↻ loop</span>':""}</p>`;
+  if(n.s)h+=`<p><i>${esc(n.s)}</i></p>`;
+  h+=`<h4>What it means</h4><p>${esc(n.d||"")}</p>`;
+  if(n.dev)h+=`<h4>Dev team to build</h4><ul>${n.dev.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  if(n.risk)h+=`<h4>Risk / loop</h4><ul>${n.risk.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  if(n.q)h+=`<div class="qbox"><b>Open question:</b> ${esc(n.q)}</div>`;
+  if(n.go)h+=`<p style="margin-top:14px"><button class="btn pri" onclick="go('${n.go}')">Open ${n.go==="d2c"?"D2C":n.go==="b2b"?"B2B":"Admin set-up"} flow →</button></p>`;
+  $("#panel").innerHTML=h;setSide(true);
+}
+
+/* ---------- MIND MAP ---------- */
+let mmOpen=new Set();
+function mmInit(n,d=0,path="r"){n._p=path;n._d=d;mmOpen.add(path);(n.c||[]).forEach((c,i)=>mmInit(c,d+1,path+"."+i))}
+mmInit(MM);
+function mmAll(open){mmOpen=new Set();(function r(n){if(open||n._d<2)mmOpen.add(n._p);(n.c||[]).forEach(r)})(MM);renderMind($("#main"))}
+function renderMind(m){
+  m.innerHTML=`<div class="intro"><h2>Mind map – scope at a glance</h2><p>Everything from your three notebook pages grouped by branch, with my suggestions on amber dashed leaves. Click a node to collapse / expand.</p></div>
+  <div class="toolbar"><button class="btn" onclick="mmAll(true)">Expand all</button><button class="btn" onclick="mmAll(false)">Collapse to level 2</button><button class="btn" onclick="window.print()">Print / PDF</button></div><div class="canvas" id="canvas"></div>`;
+  const rowH=34,colW=[0,230,220,260,260];let leaf=0;const pos=[];
+  (function lay(n){n._open=mmOpen.has(n._p);n._w=Math.max(120,Math.ceil(tw(n.t,"12.5px system-ui"))+26)+(n.c?16:0);
+    if(!n.c||!n._open){n._y=leaf*rowH;leaf++}else{n.c.forEach(lay);n._y=(n.c[0]._y+n.c[n.c.length-1]._y)/2}
+    pos.push(n)})(MM);
+  const xs=[10];const mw=[0,0,0,0,0];pos.forEach(n=>{mw[n._d]=Math.max(mw[n._d],n._w)});
+  for(let i=1;i<5;i++)xs[i]=xs[i-1]+mw[i-1]+46;
+  const W=xs[4]+mw[4]+20,H=leaf*rowH+20;
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`},$("#canvas"));
+  const lg=el("g",{},svg),ng=el("g",{},svg);
+  (function draw(n){
+    const x=xs[n._d],y=n._y+10,h=26;
+    if(n.c&&n._open)n.c.forEach(c=>{const x2=xs[c._d],y2=c._y+10+h/2,x1=x+n._w,y1=y+h/2,mx=(x1+x2)/2;el("path",{d:`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`,class:"mm-link"},lg);draw(c)});
+    const g=el("g",{class:`mm-node d${Math.min(n._d,1)}${n.s?" sug":""}`},ng);
+    el("rect",{x,y,width:n._w,height:h,rx:13},g);
+    const t=el("text",{x:x+13,y:y+h/2+4.5},g);t.textContent=n.t;
+    if(n.c){const p=el("text",{x:x+n._w-14,y:y+h/2+4,class:"pm"},g);p.textContent=n._open?"−":"+";if(n._d===0)p.style.fill="#fff"}
+    if(n.c)g.addEventListener("click",()=>{if(mmOpen.has(n._p)){mmOpen.delete(n._p)}else mmOpen.add(n._p);renderMind($("#main"))});
+  })(MM);
+}
+
+/* ---------- REVIEW ---------- */
+function renderReview(m){
+  let h=`<div class="card"><h3>How I read your handwriting (please correct me)</h3><ul class="hint" style="line-height:1.6">
+   <li>"Form separate for cor + Edu" → one separate B2B registration form for Corporate and Edu.</li>
+   <li>"Pending (default)" → new B2B accounts start as Pending until approved.</li>
+   <li>"Account Manager → RFQ → offer price" → the Account Manager replies to an RFQ with an offer price.</li>
+   <li>"Separate stock E-comms / Inventory" → e-commerce has its own stock bucket.</li>
+   <li>"100 → 70" under "Acc separate price → Catalog" → account-specific price lower than list.</li>
+   <li>"Robi + EBL + BRAC + UP" (circled) → first B2B accounts / pilot customers.</li>
+   <li>"form → deli-ecom → email-config" → forms notify by email, configured in the deli-ecom admin.</li></ul></div>
+  <div class="card"><h3>Loops & gaps found (${LOOPS.length})</h3>`;
+  LOOPS.forEach(l=>{h+=`<div class="row"><div><span class="sev ${l.sev}">${l.sev}</span><div class="fl" style="margin-top:4px">${l.id} · ${l.fl}</div></div>
+   <div><b>${esc(l.t)}</b><p>${esc(l.p)}</p><p><b>Suggested fix:</b> ${esc(l.f)}</p></div>
+   <div><select data-dec="${l.id}"><option value="">– decide –</option><option>Accept</option><option>Discuss</option><option>Drop</option></select></div></div>`});
+  h+=`</div><div class="card"><h3>Status models for the dev team</h3>`;
+  STATES.forEach(s=>{h+=`<p><b>${s.n}</b></p><div class="chain">${s.s.map((x,i)=>`<span class="chip">${esc(x)}</span>${i<s.s.length-1?"→":""}`).join("")}</div><p class="fl">${esc(s.x)}</p>`});
+  h+=`<p style="margin-top:10px"><b>Price precedence:</b> Offer price (RFQ) &gt; Account price list &gt; Default price.</p></div>
+  <div class="card"><h3>Open questions (${QUESTIONS.length})</h3>`;
+  QUESTIONS.forEach(q=>{h+=`<div class="qrow"><b>${q.id}.</b> ${esc(q.t)}<textarea data-ans="${q.id}" placeholder="Your answer…"></textarea></div>`});
+  h+=`</div><div class="card noprint"><h3>Send to MIS team</h3><p>Downloads a Markdown summary with decisions, answers, state models and the loop list.</p><button class="btn pri" id="dl">Download summary (.md)</button> <button class="btn" id="cp">Copy to clipboard</button> <span id="cpm" class="fl"></span></div>`;
+  m.innerHTML=h;
+  m.querySelectorAll("[data-dec]").forEach(s=>{s.value=store.dec[s.dataset.dec]||"";s.onchange=()=>{store.dec[s.dataset.dec]=s.value;save()}});
+  m.querySelectorAll("[data-ans]").forEach(t=>{t.value=store.ans[t.dataset.ans]||"";t.oninput=()=>{store.ans[t.dataset.ans]=t.value;save()}});
+  $("#dl").onclick=()=>{const b=new Blob([summary()],{type:"text/markdown"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="deli-ecom-flow-summary.md";a.click()};
+  $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(summary());$("#cpm").textContent="Copied"}catch(e){$("#cpm").textContent="Copy blocked – use Download"}};
+}
+function summary(){
+  let s="# Deli E-commerce – D2C + B2B flow summary\n\nSource: handwritten notes (3 pages) + current admin panel. See the interactive flowchart HTML for diagrams.\n\n## Flow outline\n";
+  ["d2c","b2b","admin"].forEach(k=>{s+=`\n### ${FLOWS[k].title}\n`;FLOWS[k].nodes.forEach(n=>{s+=`- ${n.l}${n.s?" – "+n.s:""}${n.src==="sug"?" **(suggested)**":""}\n`})});
+  s+="\n## Loops & gaps\n";LOOPS.forEach(l=>{s+=`- **${l.id} [${l.sev}] ${l.t}** (${l.fl}) – ${l.p} Fix: ${l.f} → Decision: ${store.dec[l.id]||"pending"}\n`});
+  s+="\n## Status models\n";STATES.forEach(x=>{s+=`- ${x.n}: ${x.s.join(" → ")} (${x.x})\n`});
+  s+="\n- Price precedence: Offer price > Account price list > Default price\n\n## Open questions\n";
+  QUESTIONS.forEach(q=>{s+=`- **${q.id}** ${q.t}\n  - Answer: ${store.ans[q.id]||"(open)"}\n`});
+  return s;
+}
+window.addEventListener("resize",()=>{if(fitMode&&FLOWS[cur]&&$("#canvas"))drawFlow()});
+buildTabs();render();
+</script>
+</body>
+</html>
